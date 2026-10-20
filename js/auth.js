@@ -47,7 +47,19 @@ const Auth = {
         if (e.code !== 'no_user') throw e;
         const yes = await Dlg.confirm('账号不存在', '邮箱 ' + email + ' 还没有注册，要用这个密码创建账号吗？', '创建并登录');
         if (!yes) { btn.disabled = false; btn.textContent = '登 录'; return; }
-        r = await Cloud.call('cd-login', { action: 'register', email, password });
+        /* 服务端可能设了注册门槛（邀请码 / 邮箱域名 / 关闭注册）。
+           被邀请码挡住时弹框补填并重试；其他情况（域名不符、未开放）直接报错。 */
+        try {
+          r = await Cloud.call('cd-login', { action: 'register', email, password });
+        } catch (re) {
+          if (re.code !== 'signup_denied' || !/邀请码/.test(re.message)) throw re;
+          const code = await Dlg.prompt('需要邀请码', {
+            desc: '该站点仅开放邀请注册，请输入邀请码后继续：',
+            placeholder: '邀请码', okText: '注册并登录'
+          });
+          if (!code) throw new Error('已取消注册');
+          r = await Cloud.call('cd-login', { action: 'register', email, password, invite: code.trim() });
+        }
         toast('账号已创建，已登录', 'ok');
       }
       this._enter(email, r.token);

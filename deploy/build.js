@@ -22,7 +22,8 @@ const TAG = '<script>window.__CD_ENV__=' + JSON.stringify(ENV) +
   ';window.__CD_HTTP_BASE__=' + JSON.stringify(HTTP) + '</script>';
 
 function build(target) {
-  if (fs.existsSync(target)) fs.rmSync(target, { recursive: true, force: true });
+  /* 覆盖写入，不整目录删除：
+     产物目录重建本身无害，但整目录 rmSync 会触发批量删除保护，这里改为增量覆盖即可。 */
   fs.mkdirSync(target, { recursive: true });
   fs.copyFileSync(path.join(ROOT, 'index.html'), path.join(target, 'index.html'));
   for (const d of ['css', 'js']) fs.cpSync(path.join(ROOT, d), path.join(target, d), { recursive: true });
@@ -33,6 +34,9 @@ function build(target) {
   h = h.replace('<script src="deploy/env.js"></script>', TAG);
   if (h === before) console.warn('[build] 警告：未匹配到 env.js 引用行，检查 index.html 是否被改过');
   fs.writeFileSync(p, h);
+
+  /* 跳过 GitHub Pages 的 Jekyll 处理，避免其忽略部分静态文件 */
+  fs.writeFileSync(path.join(target, '.nojekyll'), '');
   console.log('[build] ' + path.basename(target) + ' 已生成' + (ENV ? '（云端：' + ENV + '）' : '（仅本机）'));
 }
 

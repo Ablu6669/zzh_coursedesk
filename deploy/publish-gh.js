@@ -41,13 +41,11 @@ try { run('git', ['remote', 'remove', 'origin']); } catch (e) { /* 原本没有 
 run('git', ['remote', 'add', 'origin', remote]);
 run('git', ['push', '-u', 'origin', 'main']);
 
-/* 3. 在临时目录准备 gh-pages 分支 */
+/* 3. 在临时目录准备 gh-pages 分支（.nojekyll 已由 build.js 生成） */
 console.log('\n[3/4] 准备 gh-pages 分支');
 const tmp = path.join(ROOT, '.gh-pages');
 if (fs.existsSync(tmp)) fs.rmSync(tmp, { recursive: true, force: true });
 fs.cpSync(path.join(ROOT, 'dist-gh'), tmp, { recursive: true });
-/* 让 GitHub Pages 不做 Jekyll 处理（避免忽略下划线开头文件） */
-fs.writeFileSync(path.join(tmp, '.nojekyll'), '');
 
 const runIn = (cmd, args) => {
   console.log('$ (gh-pages) ' + cmd + ' ' + args.join(' '));
