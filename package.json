@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@cloudbase/manager-node": "^5.9.1",
+    "async": "^3.2.6"
+  }
+}

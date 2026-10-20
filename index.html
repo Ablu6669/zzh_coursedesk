@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课件台 CourseDeck · 港中深课件工作台</title>
+<!-- 云端配置：本地从 deploy/env.js 注入（该文件已 gitignore，模板见 deploy/env.example.js）；
+     构建 dist/ dist-gh/ 时此行会被替换为内联配置，产物不依赖该文件。 -->
+<script src="deploy/env.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header id="topbar" style="display:none">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="14" height="17" rx="2" stroke="#6f9dff" stroke-width="1.6"/><path d="M7 9h6M7 13h6M7 17h4" stroke="#6f9dff" stroke-width="1.6" stroke-linecap="round"/><path d="M17 6l3 2-1.5 5.5L17 15l-1.5-1.5L14 8l3-2z" fill="#efc25c"/></svg>
+    <span>课件台</span><span class="sub">CourseDeck</span>
+  </div>
+  <div class="crumb" id="crumb"></div>
+  <div class="top-actions">
+    <button class="icon-btn" id="btn-settings" title="设置">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h0a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h0a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v0a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+    </button>
+    <div class="chip" id="account-chip"></div>
+    <button class="icon-btn" id="btn-logout" title="退出登录" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- 登录 -->
+  <section id="view-login" class="view active">
+    <div class="login-card">
+      <h2>登录课件台</h2>
+      <p class="desc">上传课件，任意设备继续阅读；支持标注、全文翻译与 AI 问答。建议使用港中深邮箱。</p>
+      <div class="login-tabs">
+        <button class="ltab active" data-tab="pwd">密码登录</button>
+        <button class="ltab" data-tab="code">邮箱验证码</button>
+      </div>
+      <div class="field">
+        <label>邮箱</label>
+        <input id="login-email" type="email" placeholder="yourname@link.cuhk.edu.cn" autocomplete="email">
+      </div>
+      <div id="pane-pwd">
+        <div class="field">
+          <label>密码</label>
+          <input id="login-pwd" type="password" placeholder="至少 6 位" autocomplete="current-password">
+        </div>
+        <button class="btn primary" id="btn-pwd-login" style="width:100%;justify-content:center">登 录</button>
+        <p class="login-hint">首次使用会自动为你创建账号，换设备用同一邮箱 + 密码即可同步。</p>
+      </div>
+      <div id="pane-code" hidden>
+        <div class="field">
+          <label>验证码</label>
+          <div class="code-row">
+            <input id="login-code" type="text" maxlength="6" placeholder="6 位验证码" autocomplete="one-time-code">
+            <button class="btn" id="btn-send-code">发送验证码</button>
+          </div>
+        </div>
+        <button class="btn primary" id="btn-verify" style="width:100%;justify-content:center">登 录</button>
+        <p class="login-hint">未配置邮件服务时，验证码会直接显示在页面上（仅便于自测，请勿用于真实账号）。</p>
+      </div>
+      <div class="login-divider">或</div>
+      <button class="btn" id="btn-local-mode" style="width:100%;justify-content:center">仅本机体验（不登录，换设备看不到）</button>
+      <p class="login-hint" id="login-hint"></p>
+    </div>
+  </section>
+
+  <!-- 文库 -->
+  <section id="view-library" class="view">
+    <div class="lib-layout">
+      <aside class="lib-side">
+        <div class="lib-side-head"><span>知识库</span><button class="icon-btn" id="btn-new-lib" title="新建知识库" style="width:26px;height:26px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button></div>
+        <div class="lib-items" id="lib-items"></div>
+        <div class="lib-side-tip">一门课建一个知识库<br>上传时自动归入当前库</div>
+      </aside>
+      <div class="lib-main">
+        <div class="sync-bar" id="sync-bar" style="display:none"></div>
+        <div class="lib-head">
+          <h2 id="lib-title">全部课件</h2><span class="count" id="doc-count"></span>
+          <div class="spacer"></div>
+          <input id="doc-search" placeholder="搜索课件…">
+          <button class="btn" id="btn-import-folder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            导入文件夹
+          </button>
+          <button class="btn primary" id="btn-upload">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            上传课件
+          </button>
+        </div>
+        <div class="doc-grid" id="doc-grid"></div>
+      </div>
+    </div>
+    <input type="file" id="file-input" accept=".pdf,.pptx,.docx,application/pdf" multiple style="display:none">
+    <input type="file" id="folder-input" webkitdirectory multiple style="display:none">
+  </section>
+
+  <!-- 阅读器 -->
+  <section id="view-reader" class="view">
+    <div id="reader-toolbar">
+      <button class="icon-btn" id="btn-back" title="返回文库">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <span class="title" id="reader-title"></span>
+      <div class="tool-sep"></div>
+      <div class="page-ctrl">
+        <input id="page-input" type="text"> / <span id="page-total">–</span>
+      </div>
+      <div class="tool-sep"></div>
+      <div class="zoom-ctrl">
+        <button class="icon-btn" id="zoom-out" title="缩小"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+        <span id="zoom-label" style="width:40px;text-align:center;font-size:12px;color:var(--muted)">100%</span>
+        <button class="icon-btn" id="zoom-in" title="放大"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+      <div class="tool-sep"></div>
+      <div class="tool-group" id="tool-group">
+        <button class="tool-btn active" data-tool="select" title="选择 · 划选文字高亮（V）">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 3l13 7.5-5.6 1.2L9.6 19z"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="pen" title="手写笔（P）">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="marker" title="荧光笔（M）">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M5 15h14" stroke-width="4"/><path d="M7 20h8" stroke-width="2"/><path d="M15 4l4 4" stroke-width="1.6"/></svg>
+        </button>
+        <button class="tool-btn" data-tool="eraser" title="橡皮擦（E）">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20H9.5L4 14.5 13 5.5l7 7z"/><path d="M20 20h-8"/></svg>
+        </button>
+      </div>
+      <div class="pen-sizes" id="pen-sizes" title="笔迹粗细">
+        <button data-size="2"><i style="height:2px"></i></button>
+        <button data-size="4" class="on"><i style="height:4px"></i></button>
+        <button data-size="7"><i style="height:7px"></i></button>
+      </div>
+      <div class="tool-sep"></div>
+      <div class="color-dots" id="color-dots" title="标注颜色"></div>
+      <button class="icon-btn" id="btn-undo" title="撤销上一步（Ctrl+Z）">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h11a5 5 0 0 1 0 10h-4"/><path d="M7 4L3 8l4 4"/></svg>
+      </button>
+      <div class="spacer" style="flex:1"></div>
+      <button class="btn sm" id="btn-export">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        导出标注 PDF
+      </button>
+    </div>
+    <div class="reader-body">
+      <div id="pages-scroll"></div>
+      <button class="panel-expand" id="panel-expand" title="展开工具台">工具台 ›</button>
+      <aside id="side-panel">
+        <div class="panel-handle" id="panel-handle" title="拖动调整宽度"></div>
+        <div class="panel-tabs">
+          <button class="panel-tab" data-tab="outline">目录</button>
+          <button class="panel-tab" data-tab="translate">翻译</button>
+          <button class="panel-tab active" data-tab="qa">AI 问答</button>
+          <button class="panel-tab" data-tab="annot">标注</button>
+          <button class="panel-tab-icon" id="panel-collapse" title="收起面板">›</button>
+        </div>
+        <div class="tab-body" id="tab-outline">
+          <div class="outline-list" id="outline-list"></div>
+        </div>
+        <div class="tab-body" id="tab-translate">
+          <div class="trans-page-head">
+            <button class="btn sm primary" id="btn-translate-page">翻译本页</button>
+            <span class="pg" id="trans-page-label"></span>
+            <div class="trans-toggle">
+              <button id="trans-mode-both" class="on">对照</button>
+              <button id="trans-mode-dst">译文</button>
+            </div>
+          </div>
+          <div class="trans-lines" id="trans-lines"></div>
+        </div>
+        <div class="tab-body active" id="tab-qa">
+          <div class="qa-head">
+            <label class="qa-switch"><input type="checkbox" id="qa-this-doc" checked>仅本文档</label>
+            <label class="qa-switch"><input type="checkbox" id="qa-lib">本知识库</label>
+            <label class="qa-switch" id="qa-web-row"><input type="checkbox" id="qa-web">联网</label>
+            <span class="pg" style="margin-left:auto;font-size:11px;color:var(--dim)" id="qa-provider-label"></span>
+          </div>
+          <div class="qa-msgs" id="qa-msgs">
+            <div class="qa-empty" id="qa-empty">
+              <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <div>基于你上传的课件精准回答<br>回答会附带原文出处，点击可跳转</div>
+              <div class="qa-chips">
+                <span class="qa-chip" data-act="summarize">总结全文</span>
+                <span class="qa-chip" data-act="page">本页要点</span>
+                <span class="qa-chip" data-act="concepts">关键概念</span>
+                <span class="qa-chip" data-act="quiz">出几道题</span>
+              </div>
+            </div>
+          </div>
+          <div class="qa-input-row">
+            <textarea id="qa-input" placeholder="例如：这门课第三讲的重点是什么？"></textarea>
+            <button class="btn primary" id="btn-ask" style="align-self:flex-end">发送</button>
+          </div>
+        </div>
+        <div class="tab-body" id="tab-annot">
+          <div class="annot-list" id="annot-list"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<!-- 划选工具条 -->
+<div class="popup" id="sel-popup">
+  <div class="color-dot" data-color="#2b2f36" style="background:#2b2f36"></div>
+  <div class="color-dot" data-color="#e5484d" style="background:#e5484d"></div>
+  <div class="color-dot" data-color="#2f6fed" style="background:#2f6fed"></div>
+  <div class="color-dot" data-color="#ffd43b" style="background:#ffd43b"></div>
+  <button class="note-btn" id="sel-note-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    笔记
+  </button>
+  <div class="tool-sep" style="height:16px"></div>
+  <button class="note-btn" id="sel-ai-btn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    问 AI
+  </button>
+</div>
+
+<!-- 笔记编辑 -->
+<div class="popup" id="note-popup">
+  <textarea id="note-text" placeholder="输入笔记…"></textarea>
+  <div class="row">
+    <button class="btn sm ghost" id="note-delete">删除标注</button>
+    <button class="btn sm primary" id="note-save">保存</button>
+  </div>
+</div>
+
+<!-- 通用对话框（替代 prompt/confirm，预览 iframe 会屏蔽原生弹窗） -->
+<div class="modal-mask" id="dlg-mask">
+  <div class="modal" style="width:400px">
+    <h3 id="dlg-title"></h3>
+    <p class="hint" id="dlg-desc" style="display:none;margin:-8px 0 14px"></p>
+    <div class="field" id="dlg-field" style="display:none"><input id="dlg-input"></div>
+    <div class="actions">
+      <button class="btn ghost" id="dlg-cancel">取消</button>
+      <button class="btn primary" id="dlg-ok">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 设置 -->
+<div class="modal-mask" id="settings-mask">
+  <div class="modal">
+    <h3>设置</h3>
+    <div id="sec-cloud">
+      <div class="sec">云端（腾讯云开发 · 多设备同步）</div>
+      <div class="field">
+        <label>云环境 ID（CloudBase EnvId）</label>
+        <div class="inp-row">
+          <input id="set-env" placeholder="例如 course-deck-3g1a2b4c">
+          <button class="btn" id="btn-test-cloud" type="button">测试连接</button>
+        </div>
+        <p class="hint" id="cloud-hint">填写并部署 cloudfunctions 后，登录即启用多设备同步：课件、标注、译文、索引全部存云端。</p>
+      </div>
+      <div class="field">
+        <label>HTTP 访问服务域名（推荐）</label>
+        <input id="set-httpbase" placeholder="https://xxx.ap-shanghai.app.tcloudbase.com">
+        <p class="hint">走「HTTP 访问服务」调用云函数，可不依赖匿名登录、不受安全域名白名单限制，GitHub Pages 等任意托管域都能直连。留空则退回 SDK 调用。</p>
+      </div>
+    </div>
+    <p class="hint ok" id="sec-admin-note" style="display:none">管理员账号：云端 AI 已配置（翻译 / 问答 / 向量检索自动可用），无需填写本地 Key。</p>
+    <div id="sec-ai-local">
+      <div class="sec">AI 模型（本地直连）</div>
+      <div class="field">
+        <label>API Base URL（OpenAI 兼容）</label>
+        <input id="set-llmbase" placeholder="https://tokenhub.tencentmaas.com/v1">
+      </div>
+      <div class="field">
+        <label>API Key</label>
+        <input id="set-llmkey" type="password" placeholder="hk-… / sk-…（仅存本机浏览器）">
+        <p class="hint">云端 AI 仅管理员账号可用。其他账号在此填写自己的 API Key 后，即可使用翻译 / 问答（向量检索降级为关键词检索）。</p>
+      </div>
+      <div class="field">
+        <label>对话模型</label>
+        <input id="set-llmmodel" placeholder="hy4-preview">
+      </div>
+      <div class="field">
+        <label>Embedding 模型</label>
+        <input id="set-embedmodel" placeholder="kinfra-text-embedding-4b">
+      </div>
+    </div>
+    <div class="sec">联网搜索（可选）</div>
+    <div class="field">
+      <label>Serper API Key（serper.dev）</label>
+      <input id="set-serper" type="password" placeholder="留空则不联网">
+    </div>
+    <div class="actions">
+      <button class="btn ghost" id="settings-cancel">取消</button>
+      <button class="btn primary" id="settings-save">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://imgcache.qq.com/qcloud/cloudbase-js-sdk/1.7.1/cloudbase.full.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="js/llm.js"></script>
+<script src="js/office.js"></script>
+<script src="js/store.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/library.js"></script>
+<script src="js/reader.js"></script>
+<script src="js/annotate.js"></script>
+<script src="js/translate.js"></script>
+<script src="js/qa.js"></script>
+<script src="js/exporter.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "_说明": "复制本文件为 config.json 并填写。config.json 已在 .gitignore 中，密钥不会进 Git。",
+
+  "envId": "在这里填云开发环境ID，形如 coursedeck-3g1a2b4c",
+  "httpBase": "HTTP 访问服务域名，形如 https://xxx.ap-shanghai.app.tcloudbase.com。留空则前端退回 SDK 调用（需环境开启匿名登录）",
+
+  "tencentCloud": {
+    "_说明": "腾讯云 API 密钥，用于 CLI 非交互登录（控制台 console.cloud.tencent.com/cam/capi 获取）。建议用仅授予「云开发」权限的子用户密钥，不要用主账号密钥。",
+    "secretId": "",
+    "secretKey": ""
+  },
+
+  "llm": {
+    "base": "https://api.hunyuan.cloud.tencent.com/v1",
+    "key": "在这里填混元 API Key，控制台 cloud.tencent.com/product/hunyuan 获取",
+    "model": "hunyuan-turbos-latest",
+    "embedModel": "hunyuan-embedding"
+  },
+
+  "serperKey": "",
+
+  "smtp": {
+    "host": "smtp.qq.com",
+    "port": "465",
+    "user": "你的邮箱@qq.com",
+    "pass": "QQ邮箱填授权码，不是登录密码。控制台留空则验证码只打印到云函数日志",
+    "from": "你的邮箱@qq.com"
+  },
+
+  "domains": [
+    "http://127.0.0.1:8137"
+  ],
+
+  "github": {
+    "user": "Ablu6669",
+    "repo": "coursedeck"
+  }
+}

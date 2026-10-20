@@ -1,0 +1,22 @@
+{
+  "version": "2.0",
+  "envId": "在此填入你的云开发环境ID",
+  "framework": {
+    "name": "coursedeck",
+    "plugins": {
+      "client": {
+        "use": "@cloudbase/framework-plugin-website",
+        "inputs": {
+          "buildCommand": "",
+          "outputPath": "./",
+          "cloudPath": "/coursedeck"
+        }
+      },
+      "cd-login": { "use": "@cloudbase/framework-plugin-function", "inputs": { "name": "cd-login" } },
+      "cd-data": { "use": "@cloudbase/framework-plugin-function", "inputs": { "name": "cd-data" } },
+      "cd-ingest": { "use": "@cloudbase/framework-plugin-function", "inputs": { "name": "cd-ingest" } },
+      "cd-ask": { "use": "@cloudbase/framework-plugin-function", "inputs": { "name": "cd-ask" } },
+      "cd-translate": { "use": "@cloudbase/framework-plugin-function", "inputs": { "name": "cd-translate" } }
+    }
+  }
+}

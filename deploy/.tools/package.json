@@ -1,0 +1,8 @@
+{
+  "name": "coursedeck-deploy-tools",
+  "private": true,
+  "description": "部署辅助工具依赖，不随前端产物上传。",
+  "dependencies": {
+    "@cloudbase/manager-node": "^2.0.0"
+  }
+}
